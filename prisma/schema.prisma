@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String?
+  email        String    @unique
+  password     String?
+  googleId     String?   @unique @map("google_id")
+  profileImage String?
+  bio          String?
+  ownedItems   Item[]    @relation("DocumentOwner")
+  Gallery      Gallery[]
+  Comment      Comment[]
+  Like         Like[]
+}
+
+model Item {
+  id         Int       @id @default(autoincrement())
+  owner      User      @relation("DocumentOwner", fields: [ownerId], references: [id])
+  ownerId    Int
+  artImg     String
+  artDetails String
+  category   Category
+  createdAt  DateTime  @default(now()) @db.Timestamp(0)
+  updatedAt  DateTime  @updatedAt @db.Timestamp(0)
+  Gallery    Gallery[]
+  Like       Like[]
+}
+
+enum Category {
+  Oil_Painting
+  Watercolor_Painting
+  Acrylic_Painting
+  Encaustic_Painting
+  Spray_Painting
+  Indie_Art
+}
+
+model Gallery {
+  id        Int    @id @default(autoincrement())
+  name      String
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId Int
+  item      Item   @relation(fields: [itemId], references: [id])
+  itemId    Int
+}
+
+model Comment {
+  Id        Int      @id @default(autoincrement())
+  text      String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+}
+
+model Like {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  item   Item @relation(fields: [itemId], references: [id])
+  itemId Int
+}

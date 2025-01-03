@@ -21,7 +21,10 @@ authController.register = async (req, res, next) => {
         const hashPassword = await hashService.hashPassword(password)
         console.log("hashPassword ===",hashPassword)
 
+        const username = email.split('@')[0]
+
         const data = {
+            username : username,
             email,
             password : hashPassword
         }
@@ -66,7 +69,7 @@ authController.login = async (req, res, next) => {
 
         const { password : pw, googleId , ...user } = isUserExist
 
-        res.json({message : 'login successfully', data : user , token : accessToken})
+        res.json({message : 'login successfully', user , token : accessToken})
     } catch (error) {
         next(error)
     }

@@ -39,6 +39,7 @@ model Item {
   updatedAt      DateTime  @updatedAt @db.Timestamp(0)
   Gallery        Gallery[]
   Like           Like[]
+  Comment        Comment[]
 }
 
 enum Category {
@@ -60,10 +61,12 @@ model Gallery {
 }
 
 model Comment {
-  Id        Int      @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   text      String
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
+  item      Item     @relation(fields: [itemId], references: [id])
+  itemId    Int
   createdAt DateTime @default(now()) @db.Timestamp(0)
 }
 

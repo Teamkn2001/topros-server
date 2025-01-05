@@ -39,6 +39,13 @@ const loginSchema = Joi.object({
   }),
 }).required();
 
+const createCommentSchema = Joi.object({
+  text: Joi.string().required(),
+  messages: {
+    "string.empty": "Text is required",
+  }
+})
+
 const validateSchema = (schema) => (req, res, next) => {
   console.log("body ===", req.body);
   const { value, error } = schema.validate(req.body);
@@ -54,3 +61,4 @@ const validateSchema = (schema) => (req, res, next) => {
 
 exports.registerValidator = validateSchema(registerSchema);
 exports.loginValidation = validateSchema(loginSchema);
+exports.createCommentValidation = validateSchema(createCommentSchema)

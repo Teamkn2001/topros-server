@@ -8,6 +8,7 @@ guestRouter.get('/getItemById/:itemId', guestController.getItemById)
 guestRouter.get('/getPopularUsers', guestController.getPopularUsers)
 guestRouter.get('/getPopularItems', guestController.getPopularItems)
 
+guestRouter.get('/getUser/:userId', guestController.getUserById)
 guestRouter.get('/searchItems/items', guestController.searchItemsByName)
 guestRouter.get('/searchUsers/users', guestController.searchUsersByName)
 module.exports = guestRouter

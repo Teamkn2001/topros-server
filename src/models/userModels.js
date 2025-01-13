@@ -19,6 +19,14 @@ userModels.getItems = async (userId) => {
   });
 };
 
+userModels.getUserById = async (userId) => {
+  return await prisma.user.findUnique({
+    where : {
+      id : userId
+    }
+  })
+}
+
 userModels.findUserById = async (userId) => {
   return await prisma.user.findUnique({
     where: {

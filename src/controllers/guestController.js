@@ -53,13 +53,32 @@ guestController.getPopularUsers = async (req, res, next) => {
         next(error)
     }
 }
+guestController.getUserById = async (req, res, next) => {
+    try {
+  
+        const userId = req.params.userId 
+        if (!userId) {
+            return createError(404, "User Id is required !!")
+        }
+
+        const user = await guestModels.getUserById(+userId)
+        if (!user) {
+            return createError(404, "User not found !!")
+        }
+
+        console.log(user)
+
+        const { password, googleId, ...userData} = user
+
+        res.json({userData})
+    } catch (error) {
+        
+    }
+}
 
 guestController.searchItemsByName = async (req, res, next) => {
     try {
-        console.log(req.query)
         const { itemName } = req.query
-
-        console.log(itemName)
 
         if (!itemName) {
             return createError(404, "Item name is required !!")
@@ -67,7 +86,9 @@ guestController.searchItemsByName = async (req, res, next) => {
 
         const items = await guestModels.getItemByName(itemName)
         if (!items) {
-            return createError(404, "Item not found !!")
+            return res.status(404).json({
+                message: "No items found matching your search"
+            })
         }
         res.json({items})
     } catch (error) {
@@ -85,7 +106,9 @@ guestController.searchUsersByName = async (req, res, next) => {
 
         const users = await guestModels.getUserByName(userName)
         if (!users) {
-            return createError(404, "User not found !!")
+            return res.status(404).json({
+                message: "No user found matching your search"
+            })
         }
         res.json({users})
     } catch (error) {

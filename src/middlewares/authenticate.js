@@ -6,6 +6,7 @@ const authenticate = async (req, res, next) => {
  
     try {
         const authorization = req.headers.authorization
+
         if (!authorization) {
             return createError(401, 'Unauthorized: No token provided !!')
         }

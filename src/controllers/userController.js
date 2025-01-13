@@ -1,6 +1,9 @@
 const userModels = require("../models/userModels");
 const hashService = require("../services/hashService");
 const createError = require("../utils/create-error");
+const cloudinary = require("../configs/cloudinary");
+const fs = require("fs/promises");
+const path = require("path");
 
 const userController = {};
 
@@ -12,9 +15,26 @@ userController.editProfile = async (req, res, next) => {
     }
 
     const userId = user.id;
-    const data = req.body;
+
+    const { username, bio } = req.body;
+    const file = req.file;
+ 
+    let uploadResult = {};
+    if (file) {
+      uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        overwrite: true,
+        public_id: path.parse(req.file.path).name,
+      });
+      fs.unlink(req.file.path);
+    }
+
+    const data = {
+      username,
+      bio,
+      profileImage: uploadResult.secure_url,
+    }
     if (!data) {
-      return createError(400, "Data not found !!");
+      return createError(400, "Data not is missing !!");
     }
 
     const updatedUser = await userModels.editProfile(+userId, data);
@@ -45,9 +65,6 @@ userController.verifyOldPassword = async (req, res, next) => {
     if (!data) {
       return createError(400, "Data not found !!");
     }
-
-    console.log("password input ===", data.oldPassword);
-    console.log("password database ===", userPassword.password);
 
     const isPasswordMatch = await hashService.comparePassword(
       data.oldPassword,
@@ -103,8 +120,6 @@ userController.resetPassword = async (req, res, next) => {
       );
     }
 
-    console.log("hash new pass ===", hashedPassword);
-
     const updatePassword = await userModels.resetPassword(
       +userId,
       hashedPassword
@@ -125,7 +140,6 @@ userController.getItem = async (req, res, next) => {
     }
 
     const items = await userModels.getItems(+user.id);
-    console.log("🚀", items);
 
     res.json({ message: "fetch items success", data: items });
   } catch (error) {
@@ -136,9 +150,8 @@ userController.getItem = async (req, res, next) => {
 userController.createItem = async (req, res, next) => {
   try {
     const user = req.user;
-    const data = req.body;
+    const { artName, artDescription, category } = req.body;
 
-    console.log(data);
     if (!user) {
       return createError(401, "Unauthorized: User not found !!");
     }
@@ -147,18 +160,36 @@ userController.createItem = async (req, res, next) => {
       return createError(404, "User not found !!");
     }
 
-    data.ownerId = +user.id;
-
-    console.log(data)
-
-    if (
-      !data.artName ||
-      !data.artImg ||
-      !data.artDescription
-    ) {
-      return createError(400, "Data not found or complete!!");
+    const file = req.file;
+    let uploadResult = {};
+    if (file) {
+      uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        overwrite: true,
+        public_id: path.parse(req.file.path).name,
+      });
+      fs.unlink(req.file.path);
     }
 
+    const data = {
+      ownerId: user.id,
+      artName,
+      artDescription,
+      artImg: uploadResult.secure_url,
+      category,
+    };
+
+    const requiredFields = [
+      "ownerId",
+      "artName",
+      "artImg",
+      "category",
+    ];
+    // loop check if not found that datafield > the missingFields is true > createError
+    const missingFields = requiredFields.find((field) => !data[field]);
+    if (missingFields) {
+      return createError(400, `${missingFields} is missing !!`);
+    }
+   
     const item = await userModels.createItem(data);
     if (!item) {
       return createError(400, "Failed to create item");
@@ -182,17 +213,49 @@ userController.editItem = async (req, res, next) => {
       return createError(400, "Item not found !!");
     }
 
-    const data = req.body;
+    const itemFound = await userModels.findItemById(+itemId);
+    if (!itemFound) {
+      return createError(404, "Item not found !!");
+    }
+
+    if (itemFound.ownerId !== user.id) {
+      return createError(403, "Forbidden: You are not the owner of this item");
+    }
+
+    const { artName, artDescription, category } = req.body;
+
+    const file = req.file;
+
+    let uploadResult = {};
+    if (file) {
+      uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        overwrite: true,
+        public_id: path.parse(req.file.path).name,
+      });
+      fs.unlink(req.file.path);
+    }
+
+    const data = {
+      artName,
+      artDescription,
+      category,
+      artImg: uploadResult.secure_url,
+    };
+
     if (!data) {
       return createError(400, "Data not found !!");
     }
+
+    console.log(data);
 
     const item = await userModels.editItem(+itemId, data);
     if (!item) {
       return createError(400, "Failed to edit item");
     }
 
-    res.json({ message: "edit item success", data: item });
+    const verifiedItem = await userModels.findItemById(+itemId)
+
+    res.json({ message: "edit item success", data : verifiedItem, imageUpdated: !!file });
   } catch (error) {
     next(error);
   }
@@ -209,7 +272,8 @@ userController.deleteItem = async (req, res, next) => {
     if (!itemId) {
       return createError(400, "Item not found !!");
     }
-
+console.log(itemId)
+console.log(isNaN(itemId))
     const item = await userModels.deleteItem(+itemId);
     if (!item) {
       return createError(400, "Failed to delete item");
@@ -336,43 +400,42 @@ userController.deleteComment = async (req, res, next) => {
 };
 
 userController.toggleLike = async (req, res, next) => {
-    try {
-        const user = req.user;
-        if (!user) {
-            return createError(401, "Unauthorized: User not found !!");
-        }
-
-        const itemId = req.params.itemId;
-        if (!itemId) {
-            return createError(404, "ItemId is required !!");
-        }
-
-        const item = await userModels.findItemById(+itemId);
-        if (!item) {
-            return createError(404, "Item not found !!");
-        }
-
-        const like = await userModels.findLike(+user.id, +itemId);
-
-        if(!like) {
-            const newLike = await userModels.createLike(+user.id, +itemId);
-            if(!newLike) {
-                return createError(500, "Failed to create like");
-            }
-        } else {
-
-            const likeId = like.id;
-            const deletedLike = await userModels.deleteLike(+likeId);
-
-            if(!deletedLike) {
-                return createError(500, "Failed to delete like");
-            }
-        }
-
-        res.json({ message: "toggle like success" });
-    } catch (error) {
-        next(error)
+  try {
+    const user = req.user;
+    if (!user) {
+      return createError(401, "Unauthorized: User not found !!");
     }
-}
+
+    const itemId = req.params.itemId;
+    if (!itemId) {
+      return createError(404, "ItemId is required !!");
+    }
+
+    const item = await userModels.findItemById(+itemId);
+    if (!item) {
+      return createError(404, "Item not found !!");
+    }
+
+    const like = await userModels.findLike(+user.id, +itemId);
+
+    if (!like) {
+      const newLike = await userModels.createLike(+user.id, +itemId);
+      if (!newLike) {
+        return createError(500, "Failed to create like");
+      }
+    } else {
+      const likeId = like.id;
+      const deletedLike = await userModels.deleteLike(+likeId);
+
+      if (!deletedLike) {
+        return createError(500, "Failed to delete like");
+      }
+    }
+
+    res.json({ message: "toggle like success" });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = userController;

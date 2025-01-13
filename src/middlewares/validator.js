@@ -33,8 +33,8 @@ const loginSchema = Joi.object({
     "any.required": "Email is required",
   }),
   password: Joi.string().required().min(6).max(30).messages({
-    "string.min": "Password must be at least 6 characters long",
-    "string.max": "Password must be at most 30 characters long",
+    "string.min": "Password be at least 6 characters long",
+    "string.max": "Password be at most 30 characters long",
     "any.required": "Password is required",
   }),
 }).required();

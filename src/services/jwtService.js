@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const jwtService = {}
 
 jwtService.sign = async (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '3d' })
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5d' })
 }
 
 jwtService.verify = async (token) => {

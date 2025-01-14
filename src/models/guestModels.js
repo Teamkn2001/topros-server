@@ -127,7 +127,6 @@ guestModels.getPopularUsers = async () => {
       },
     },
   });
-  console.log(items);
 
   // Combine the data
   return users.map((user) => ({
@@ -150,7 +149,6 @@ guestModels.getItemByName = async (itemName) => {
     });
 
     const isBlank = items.length === 0;
-    console.log(isBlank);
 
     if (isBlank) {
       return null;

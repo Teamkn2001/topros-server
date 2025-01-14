@@ -246,8 +246,6 @@ userController.editItem = async (req, res, next) => {
       return createError(400, "Data not found !!");
     }
 
-    console.log(data);
-
     const item = await userModels.editItem(+itemId, data);
     if (!item) {
       return createError(400, "Failed to edit item");
@@ -272,8 +270,7 @@ userController.deleteItem = async (req, res, next) => {
     if (!itemId) {
       return createError(400, "Item not found !!");
     }
-console.log(itemId)
-console.log(isNaN(itemId))
+
     const item = await userModels.deleteItem(+itemId);
     if (!item) {
       return createError(400, "Failed to delete item");
@@ -333,8 +330,6 @@ userController.editComment = async (req, res, next) => {
     if (!commentId) {
       return createError(404, "Comment not found !!");
     }
-
-    console.log(commentId);
 
     const isCommentExist = await userModels.findCommentById(+commentId);
     if (!isCommentExist) {

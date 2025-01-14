@@ -66,8 +66,6 @@ guestController.getUserById = async (req, res, next) => {
             return createError(404, "User not found !!")
         }
 
-        console.log(user)
-
         const { password, googleId, ...userData} = user
 
         res.json({userData})

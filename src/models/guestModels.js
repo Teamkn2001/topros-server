@@ -11,21 +11,6 @@ guestModels.getRandomItems = async () => {
 `;
 };
 
-// random with sequelize e.g. id : 51 52 53 54 55 56 57 58 59
-// guestModels.getRandomItems = async () => {
-//   // Get total count first
-//   const count = await prisma.item.count();
-//   console.log(count)
-//   // Get random skip value
-//   const skip = Math.floor(Math.random() * (count - 9));
-//   console.log(skip)
-
-//   return await prisma.item.findMany({
-//       take: 9,
-//       skip: skip
-//   });
-// };
-
 guestModels.getRandomItemsWithCategory = async (category) => {
   return await prisma.item.findMany({
     where: {

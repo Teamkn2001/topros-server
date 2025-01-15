@@ -3,7 +3,7 @@ const hashService = require("../src/services/hashService");
 
 async function run() {
   try {
-    const password = "123456";
+    const password = process.env.USER_PASSWORD
 
     const hashedPassword = await hashService.hashPassword(password);
 

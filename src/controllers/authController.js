@@ -12,14 +12,12 @@ authController.register = async (req, res, next) => {
         const {email, password} = req.body
 
         const isUserExist = await authServices.findUser(email)
-        console.log(isUserExist)
 
         if(isUserExist){
             return createError(400, "User already exists") 
         }
 
         const hashPassword = await hashService.hashPassword(password)
-        console.log("hashPassword ===",hashPassword)
 
         const username = email.split('@')[0]
 
@@ -33,7 +31,6 @@ authController.register = async (req, res, next) => {
 
         res.json({message : 'user created successfully', data : createUser})
     } catch (error) {
-        console.log("Error happened in authController.register naja: ", error)
         next(error)
     }
 }
@@ -41,7 +38,6 @@ authController.register = async (req, res, next) => {
 authController.login = async (req, res, next) => {
     try {
         const {email, password} = req.body
-        console.log(email, password)
 
         if(!email || !password){
             return createError(400, "Email and password is required")
@@ -51,8 +47,6 @@ authController.login = async (req, res, next) => {
         if(!isUserExist){
             return createError(400, "User not found")
         }
-
-        console.log(isUserExist)
 
         const isPasswordMatch = await hashService.comparePassword(password, isUserExist.password)
 

@@ -25,6 +25,8 @@ model User {
   Gallery      Gallery[]
   Comment      Comment[]
   Like         Like[]
+
+  @@map("users")
 }
 
 model Item {
@@ -40,6 +42,8 @@ model Item {
   Gallery        Gallery[]
   Like           Like[]
   Comment        Comment[]
+
+  @@map("item")
 }
 
 enum Category {
@@ -49,6 +53,8 @@ enum Category {
   Encaustic_Painting
   Spray_Painting
   Indie_Art
+
+  @@map("category")
 }
 
 model Gallery {
@@ -58,6 +64,8 @@ model Gallery {
   creatorId Int
   item      Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId    Int
+
+  @@map("gallery")
 }
 
 model Comment {
@@ -68,6 +76,8 @@ model Comment {
   item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId    Int
   createdAt DateTime @default(now()) @db.Timestamp(0)
+
+  @@map("comment")
 }
 
 model Like {
@@ -76,4 +86,6 @@ model Like {
   userId Int
   item   Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId Int
+
+  @@map("like")
 }

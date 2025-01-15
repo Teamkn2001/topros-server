@@ -15,26 +15,26 @@ userController.editProfile = async (req, res, next) => {
     }
 
     const userId = user.id;
-
     const { username, bio } = req.body;
     const file = req.file;
  
     let uploadResult = {};
     if (file) {
-      uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      uploadResult = await cloudinary.uploader.upload(file.path, {  // Use file.path directly
         overwrite: true,
-        public_id: path.parse(req.file.path).name,
+        public_id: path.parse(file.filename).name,  // Use file.filename instead of file.path
       });
-      fs.unlink(req.file.path);
+      fs.unlinkSync(file.path);  // Use synchronous version to ensure cleanup
     }
 
     const data = {
-      username,
-      bio,
-      profileImage: uploadResult.secure_url,
+      ...(username && { username }),
+      ...(bio && { bio }),
+      ...(uploadResult.secure_url && { profileImage: uploadResult.secure_url }),
     }
-    if (!data) {
-      return createError(400, "Data not is missing !!");
+
+    if (Object.keys(data).length === 0) {
+      return createError(400, "No data provided for update");
     }
 
     const updatedUser = await userModels.editProfile(+userId, data);
@@ -155,19 +155,23 @@ userController.createItem = async (req, res, next) => {
     if (!user) {
       return createError(401, "Unauthorized: User not found !!");
     }
-    const isUserExist = await userModels.findUserById(+user.id);
-    if (!isUserExist) {
-      return createError(404, "User not found !!");
-    }
 
     const file = req.file;
-    let uploadResult = {};
-    if (file) {
-      uploadResult = await cloudinary.uploader.upload(req.file.path, {
+    if (!file) {
+      return createError(400, "No image file provided");
+    }
+
+    let uploadResult;
+    try {
+      uploadResult = await cloudinary.uploader.upload(file.path, {
         overwrite: true,
-        public_id: path.parse(req.file.path).name,
+        public_id: path.parse(file.filename).name,
       });
-      fs.unlink(req.file.path);
+    } finally {
+      // Always clean up the temp file
+      if (file.path) {
+        fs.unlinkSync(file.path);
+      }
     }
 
     const data = {
@@ -178,13 +182,7 @@ userController.createItem = async (req, res, next) => {
       category,
     };
 
-    const requiredFields = [
-      "ownerId",
-      "artName",
-      "artImg",
-      "category",
-    ];
-    // loop check if not found that datafield > the missingFields is true > createError
+    const requiredFields = ["ownerId", "artName", "artImg", "category"];
     const missingFields = requiredFields.find((field) => !data[field]);
     if (missingFields) {
       return createError(400, `${missingFields} is missing !!`);
@@ -223,27 +221,32 @@ userController.editItem = async (req, res, next) => {
     }
 
     const { artName, artDescription, category } = req.body;
-
     const file = req.file;
 
     let uploadResult = {};
     if (file) {
-      uploadResult = await cloudinary.uploader.upload(req.file.path, {
-        overwrite: true,
-        public_id: path.parse(req.file.path).name,
-      });
-      fs.unlink(req.file.path);
+      try {
+        uploadResult = await cloudinary.uploader.upload(file.path, {  // Use file.path directly
+          overwrite: true,
+          public_id: path.parse(file.filename).name,  // Use file.filename instead
+        });
+      } finally {
+        // Always clean up the temp file
+        if (file.path) {
+          fs.unlinkSync(file.path);  // Use synchronous version
+        }
+      }
     }
 
     const data = {
-      artName,
-      artDescription,
-      category,
-      artImg: uploadResult.secure_url,
+      ...(artName && { artName }),
+      ...(artDescription && { artDescription }),
+      ...(category && { category }),
+      ...(uploadResult.secure_url && { artImg: uploadResult.secure_url }),
     };
 
-    if (!data) {
-      return createError(400, "Data not found !!");
+    if (Object.keys(data).length === 0) {
+      return createError(400, "No data provided for update");
     }
 
     const item = await userModels.editItem(+itemId, data);
@@ -253,12 +256,15 @@ userController.editItem = async (req, res, next) => {
 
     const verifiedItem = await userModels.findItemById(+itemId)
 
-    res.json({ message: "edit item success", data : verifiedItem, imageUpdated: !!file });
+    res.json({ 
+      message: "edit item success", 
+      data: verifiedItem, 
+      imageUpdated: !!file 
+    });
   } catch (error) {
     next(error);
   }
 };
-
 userController.deleteItem = async (req, res, next) => {
   try {
     const user = req.user;

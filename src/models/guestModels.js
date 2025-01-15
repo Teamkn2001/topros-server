@@ -5,7 +5,7 @@ const guestModels = {};
 
 guestModels.getRandomItems = async () => {
   return await prisma.$queryRaw`
-    SELECT * FROM Item 
+    SELECT * FROM item 
     ORDER BY RAND() 
     LIMIT 9
 `;
@@ -76,16 +76,16 @@ guestModels.getPopularItems = async () => {
 
 guestModels.getPopularUsers = async () => {
   const users = await prisma.$queryRaw`
-        SELECT 
+         SELECT 
             u.id,
             u.username,
             u.profileImage,
             u.email,
             u.bio,
             CAST(COUNT(l.id) AS SIGNED) as totalLikes
-        FROM User u
-        LEFT JOIN Item i ON u.id = i.ownerId
-        LEFT JOIN \`Like\` l ON i.id = l.itemId
+        FROM user u
+        LEFT JOIN item i ON u.id = i.ownerId
+        LEFT JOIN \`like\` l ON i.id = l.itemId
         GROUP BY u.id, u.username, u.profileImage, u.bio
         ORDER BY totalLikes DESC
         LIMIT 8

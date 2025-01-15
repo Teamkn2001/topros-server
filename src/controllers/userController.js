@@ -24,7 +24,7 @@ userController.editProfile = async (req, res, next) => {
         overwrite: true,
         public_id: path.parse(file.filename).name,  // Use file.filename instead of file.path
       });
-      fs.unlinkSync(file.path);  // Use synchronous version to ensure cleanup
+      await fs.unlink(file.path);  // Use synchronous version to ensure cleanup
     }
 
     const data = {
@@ -170,7 +170,7 @@ userController.createItem = async (req, res, next) => {
     } finally {
       // Always clean up the temp file
       if (file.path) {
-        fs.unlinkSync(file.path);
+     await  fs.unlink(file.path);
       }
     }
 
@@ -233,7 +233,7 @@ userController.editItem = async (req, res, next) => {
       } finally {
         // Always clean up the temp file
         if (file.path) {
-          fs.unlinkSync(file.path);  // Use synchronous version
+         await fs.unlink(file.path);  
         }
       }
     }

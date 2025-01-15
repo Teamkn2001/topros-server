@@ -26,7 +26,7 @@ model User {
   Comment      Comment[]
   Like         Like[]
 
-  @@map("users")
+  @@map("user")
 }
 
 model Item {

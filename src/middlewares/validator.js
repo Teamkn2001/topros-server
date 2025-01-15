@@ -47,10 +47,8 @@ const createCommentSchema = Joi.object({
 })
 
 const validateSchema = (schema) => (req, res, next) => {
-  console.log("body ===", req.body);
   const { value, error } = schema.validate(req.body);
   if (error) {
-    console.log(error);
     const errorMessage = error.details[0].message;
     const err = createError(400, errorMessage);
     return next(err);

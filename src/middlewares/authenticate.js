@@ -17,7 +17,6 @@ const authenticate = async (req, res, next) => {
         }
 
         const jwtPayload = await jwtService.verify(token)
-        // console.log('jwtPayload ===',jwtPayload)
 
         if(!jwtPayload){
             return createError(401, 'Unauthorized: Invalid token !!')
